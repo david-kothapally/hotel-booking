@@ -82,7 +82,7 @@ namespace HotelBooking.Api.Services
                 GuestCount = request.GuestCount,
                 SpecialRequests = request.SpecialRequests,
                 TotalPrice = totalPrice,
-                Status = "Confirmed"
+                Status = BookingStatus.Confirmed
             };
 
             Booking savedBooking = await _bookingRepository.CreateBookingAsync(booking, cancellationToken);

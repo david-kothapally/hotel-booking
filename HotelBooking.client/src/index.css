@@ -1,0 +1,8 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-primary: #3E2B22;  /* deep espresso brown - wordmark, dark accents */
+  --color-brand-accent: #125C50;   /* teal green - CTA buttons */
+  --color-brand-ink: #1A1A1A;      /* near-black - nav/body text */
+  --color-brand-muted: #6B6B6B;    /* gray - small labels */
+}

@@ -1,3 +1,4 @@
+using HotelBooking.Api.Common;
 using HotelBooking.Api.Data;
 using HotelBooking.Api.Models;
 using HotelBooking.Api.Repositories.Interfaces;
@@ -33,7 +34,7 @@ namespace HotelBooking.Api.Repositories
         {
             bool hasConflict = await _context.Bookings.AnyAsync(booking =>
                 booking.RoomId == roomId &&
-                booking.Status == "Confirmed" &&
+                booking.Status == BookingStatus.Confirmed &&
                 booking.CheckInDate < checkOut &&
                 booking.CheckOutDate > checkIn,
                 cancellationToken);

@@ -10,7 +10,21 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+const string ClientOrigin = "AllowClient";
+
 // Add services to the container.
+
+builder.Services.AddCors(options =>
+{
+    // Allows the Vite dev server to call this API. Vite defaults to 5173
+    // but falls back to 5174+ if that port is already taken.
+    options.AddPolicy(ClientOrigin, policy =>
+    {
+        policy.WithOrigins("http://localhost:5173", "http://localhost:5174")
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -46,6 +60,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseCors(ClientOrigin);
 
 app.UseAuthorization();
 

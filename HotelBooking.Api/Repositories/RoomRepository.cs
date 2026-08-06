@@ -1,3 +1,4 @@
+using HotelBooking.Api.Common;
 using HotelBooking.Api.Data;
 using HotelBooking.Api.Models;
 using HotelBooking.Api.Repositories.Interfaces;
@@ -20,7 +21,7 @@ namespace HotelBooking.Api.Repositories
                 .Where(room => room.IsActive)
                 .Where(room => room.MaxGuests >= guests)
                 .Where(room => !room.Bookings.Any(booking =>
-                    booking.Status == "Confirmed" &&
+                    booking.Status == BookingStatus.Confirmed &&
                     booking.CheckInDate < checkOut &&
                     booking.CheckOutDate > checkIn))
                 .ToListAsync(cancellationToken);

@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using HotelBooking.Api.Common;
 
 namespace HotelBooking.Api.Models
 {
@@ -37,7 +38,7 @@ namespace HotelBooking.Api.Models
 
         [Required]
         [MaxLength(20)]
-        public string Status { get; set; } = "Confirmed";
+        public string Status { get; set; } = BookingStatus.Confirmed;
 
         public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
 
