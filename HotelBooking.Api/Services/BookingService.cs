@@ -50,26 +50,16 @@ namespace HotelBooking.Api.Services
                     $"Room {room.RoomNumber} allows a maximum of {room.MaxGuests} guests, but {request.GuestCount} were requested.");
             }
 
-            // 2. Check availability again (the search results the guest saw may be stale by now)
-            bool isAvailable = await _bookingRepository.IsRoomAvailableAsync(
-                request.RoomId,
-                request.CheckInDate,
-                request.CheckOutDate,
-                cancellationToken);
-
-            if (!isAvailable)
-            {
-                throw new RoomNotAvailableException($"Room {room.RoomNumber} is no longer available for the selected dates.");
-            }
-
-            // 3. Calculate total price
+            // 2. Calculate total price
             int nights = request.CheckOutDate.DayNumber - request.CheckInDate.DayNumber;
             decimal totalPrice = nights * room.PricePerNight;
 
-            // 4. Generate booking reference
+            // 3. Generate booking reference
             string bookingReference = _bookingReferenceGenerator.Generate();
 
-            // 5. Save booking
+            // 4. Save booking - availability is re-checked and the insert happens atomically,
+            // inside one Serializable transaction, so a second guest booking the same room
+            // concurrently can't slip through between the check and the write.
             Booking booking = new Booking
             {
                 BookingReference = bookingReference,
@@ -85,9 +75,14 @@ namespace HotelBooking.Api.Services
                 Status = BookingStatus.Confirmed
             };
 
-            Booking savedBooking = await _bookingRepository.CreateBookingAsync(booking, cancellationToken);
+            Booking? savedBooking = await _bookingRepository.CreateBookingIfAvailableAsync(booking, cancellationToken);
 
-            // 6. Return BookingResponse
+            if (savedBooking is null)
+            {
+                throw new RoomNotAvailableException($"Room {room.RoomNumber} is no longer available for the selected dates.");
+            }
+
+            // 5. Return BookingResponse
             return _mapper.Map<BookingResponse>(savedBooking);
         }
 

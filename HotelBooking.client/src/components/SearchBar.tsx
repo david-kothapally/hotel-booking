@@ -90,7 +90,7 @@ function SearchBar({ onSearch, initialCheckIn, initialCheckOut, initialGuestCoun
 
         <button
           type="submit"
-          className="rounded bg-brand-accent px-6 py-2 font-semibold text-white"
+          className="cursor-pointer rounded bg-brand-accent px-6 py-2 font-semibold text-white"
         >
           Search
         </button>

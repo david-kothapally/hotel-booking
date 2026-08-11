@@ -1,3 +1,4 @@
+using System.Data;
 using HotelBooking.Api.Common;
 using HotelBooking.Api.Data;
 using HotelBooking.Api.Models;
@@ -15,10 +16,26 @@ namespace HotelBooking.Api.Repositories
             _context = context;
         }
 
-        public async Task<Booking> CreateBookingAsync(Booking booking, CancellationToken cancellationToken)
+        public async Task<Booking?> CreateBookingIfAvailableAsync(Booking booking, CancellationToken cancellationToken)
         {
+            await using var transaction = await _context.Database.BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken);
+
+            bool hasConflict = await _context.Bookings.AnyAsync(existingBooking =>
+                existingBooking.RoomId == booking.RoomId &&
+                existingBooking.Status == BookingStatus.Confirmed &&
+                existingBooking.CheckInDate < booking.CheckOutDate &&
+                existingBooking.CheckOutDate > booking.CheckInDate,
+                cancellationToken);
+
+            if (hasConflict)
+            {
+                await transaction.RollbackAsync(cancellationToken);
+                return null;
+            }
+
             _context.Bookings.Add(booking);
             await _context.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
 
             return booking;
         }
@@ -28,18 +45,6 @@ namespace HotelBooking.Api.Repositories
             return await _context.Bookings
                 .Include(booking => booking.Room)
                 .FirstOrDefaultAsync(booking => booking.BookingReference == bookingReference, cancellationToken);
-        }
-
-        public async Task<bool> IsRoomAvailableAsync(int roomId, DateOnly checkIn, DateOnly checkOut, CancellationToken cancellationToken)
-        {
-            bool hasConflict = await _context.Bookings.AnyAsync(booking =>
-                booking.RoomId == roomId &&
-                booking.Status == BookingStatus.Confirmed &&
-                booking.CheckInDate < checkOut &&
-                booking.CheckOutDate > checkIn,
-                cancellationToken);
-
-            return !hasConflict;
         }
     }
 }
